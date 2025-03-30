@@ -4,3 +4,4 @@ bin
 tmp
 coverage.html
 coverage.out
+.vscode
