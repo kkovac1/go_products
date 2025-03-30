@@ -2,10 +2,35 @@ package types
 
 import "time"
 
+type OrderStore interface {
+	CreateOrder(Order) (int, error)
+	CreateOrderItem(OrderItem) error
+}
+
+type Order struct {
+	ID        int       `json:"id"`
+	UserID    int       `json:"userID"`
+	Total     float64   `json:"total"`
+	Status    string    `json:"status"`
+	Address   string    `json:"address"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type OrderItem struct {
+	ID        int       `json:"id"`
+	OrderID   int       `json:"orderID"`
+	ProductID int       `json:"productID"`
+	Quantity  int       `json:"quantity"`
+	Price     float64   `json:"price"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type ProductsStore interface {
 	GetAllProducts() ([]*Product, error)
 	GetProductById(productId int) (*Product, error)
+	GetProductsByIds(productIds []int) ([]Product, error)
 	CreateProduct(Product) error
+	UpdateProduct(product Product) error
 }
 
 type Product struct {
@@ -51,4 +76,12 @@ type CreateProductPayload struct {
 	Image       string  `json:"image"`
 	Price       float64 `json:"price" validate:"required"`
 	Quantity    int     `json:"quantity" validate:"required"`
+}
+
+type CartItem struct {
+	ProductId int `json:"productId"`
+	Quantity  int `json:"quantity"`
+}
+type CartCheckoutPayload struct {
+	Items []CartItem `json:"items" validate:"required"`
 }

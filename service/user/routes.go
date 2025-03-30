@@ -60,7 +60,6 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, map[string]string{
 		"token": token,
 	})
-
 }
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {

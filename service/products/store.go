@@ -2,6 +2,8 @@ package products
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/kkovac1/products/types"
 )
@@ -52,6 +54,33 @@ func (s *Store) GetProductById(productId int) (*types.Product, error) {
 	return product, nil
 }
 
+func (s *Store) GetProductsByIds(productIds []int) ([]types.Product, error) {
+	placeholders := strings.Repeat(",?", len(productIds)-1)
+	query := fmt.Sprintf("SELECT * FROM products WHERE id IN (?%s)", placeholders)
+
+	args := make([]any, len(productIds))
+	for i, v := range productIds {
+		args[i] = v
+	}
+
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	products := []types.Product{}
+	for rows.Next() {
+		p, err := scanRowsIntoProduct(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, *p)
+	}
+
+	return products, nil
+}
+
 func (s *Store) CreateProduct(product types.Product) error {
 	_, err := s.db.Exec("INSERT INTO products (name, description, image, price, quantity) VALUES (?, ?, ?, ?, ?)",
 		product.Name,
@@ -59,6 +88,22 @@ func (s *Store) CreateProduct(product types.Product) error {
 		product.Image,
 		product.Price,
 		product.Quantity,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) UpdateProduct(product types.Product) error {
+	_, err := s.db.Exec("UPDATE products SET name = ?, description = ?, image = ?, price = ?, quantity = ? WHERE id = ?",
+		product.Name,
+		product.Description,
+		product.Image,
+		product.Price,
+		product.Quantity,
+		product.ID,
 	)
 	if err != nil {
 		return err

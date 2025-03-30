@@ -48,10 +48,18 @@ func (m *mockProductsStore) GetProductById(productId int) (*types.Product, error
 	return &types.Product{}, nil
 }
 
+func (m *mockProductsStore) GetProductsByIds(productIds []int) ([]types.Product, error) {
+	return []types.Product{}, nil
+}
+
 func (m *mockProductsStore) GetAllProducts() ([]*types.Product, error) {
 	return []*types.Product{}, nil
 }
 
 func (m *mockProductsStore) CreateProduct(product types.Product) error {
+	return nil
+}
+
+func (m *mockProductsStore) UpdateProduct(product types.Product) error {
 	return nil
 }
