@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/kkovac1/products/service/products"
 	"github.com/kkovac1/products/service/user"
 )
 
@@ -28,6 +29,10 @@ func (server *ApiServer) Run() error {
 	userStore := user.NewStore(server.db)
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(subrouter)
+
+	productsStore := products.NewStore(server.db)
+	productsHandler := products.NewHandler(productsStore)
+	productsHandler.RegisterRoutes(subrouter)
 
 	log.Println("Starting server on", server.address)
 	return http.ListenAndServe(server.address, router)
