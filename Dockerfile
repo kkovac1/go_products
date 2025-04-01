@@ -1,17 +1,20 @@
 FROM golang:1.24.1 AS build-stage
-# Install make (if it's not already available)
-RUN apt-get update && apt-get install -y make
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+
+# Build the API binary
 RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./cmd/main.go
 
-FROM build-stage AS run-test-stage
-RUN go test -v ./...
+# Build the migration binary
+RUN CGO_ENABLED=0 GOOS=linux go build -o /migrate ./cmd/migrate/main.go
 
-FROM scratch AS build-release-stage
+FROM alpine:latest AS build-release-stage
 WORKDIR /
 COPY --from=build-stage /api /api
+COPY --from=build-stage /migrate /migrate
+COPY cmd/migrate/migrations /cmd/migrate/migrations
+RUN chmod +x /api  # Ensure executable permissions
 EXPOSE 8080
-ENTRYPOINT ["/api"]
+CMD ["/api"]

@@ -1,24 +1,42 @@
-services:
+version: "3.8"
 
+services:
   db:
     image: mysql:8.0
-    healthcheck:
-      test: "exit 0"
-    volumes:
-      - db_data:/var/lib/mysql
+    container_name: mysql_container
+    restart: always
     ports:
       - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: admin
       MYSQL_DATABASE: products
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    build: .
+    container_name: migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: admin
+      DB_NAME: products
+    command: ["/migrate", "up"]  # Explicitly run the migrate binary
 
   api:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
+    container_name: go_api
     restart: on-failure
-    volumes:
-      - .:/go/src/api
     ports:
       - "8080:8080"
     environment:
@@ -26,10 +44,9 @@ services:
       DB_USER: root
       DB_PASSWORD: admin
       DB_NAME: products
-    links:
-      - db
     depends_on:
-      - db
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   db_data:
